@@ -1,0 +1,31 @@
+.starability-slot {
+    display: inline-block;
+    direction: rtl;
+    border: none;
+  }
+  
+  .starability-slot input {
+    display: none;
+  }
+  
+  .starability-slot label {
+    float: right;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 30px;
+    color: #ddd;
+  }
+  
+  .starability-slot label:before {
+    content: "★";
+  }
+  
+  .starability-slot input:checked ~ label {
+    color: gold;
+  }
+  
+  .starability-slot label:hover,
+  .starability-slot label:hover ~ label {
+    color: gold;
+  }

@@ -1,0 +1,166 @@
+<% layout("layouts/boilerplate")%>
+<div class="row mt-4">
+   <div class="col-8 offset-3">
+    
+    <h3><%=listing.title%></h3>  
+   </div>
+    <div class="card col-6 offset-3 show-card listing-card">
+        <img src="<%=listing.image.url%>" class="card-img-top show-img" alt="listing_image">
+        <div class="card-body">
+            <br>
+            <p class="card-text">Owned by:<i><%=listing.owner.username%></i> </p>
+            <br>
+            <p class="card-text"><%=listing.description%></p>
+            <br>
+            <p class="card-text">&#8377;<%=listing.price%></p>
+            <br>
+            <p class="card-text"><%=listing.location%></p>
+            <br>
+            <p class="card-text"><%=listing.country%></p>
+         <hr>
+        
+        <h4>Where you'll be</h4>
+        <div 
+           id="map"
+            data-coordinates='<%- JSON.stringify(listing.geometry.coordinates) %>'
+            data-title="<%= listing.title %>"
+            data-location="<%= listing.location %>"
+            data-country="<%= listing.country %>"
+        ></div>
+         
+        </div>
+    
+
+<% if(currentUser && listing.owner._id.equals(currentUser._id)){ %>
+    <div class="btns">
+    <a href="/listings/<%=listing._id%>/edit" class="btn btn-dark col-2 add-btn offset-3">Edit</a>
+    <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE">
+        <button class="btn btn-dark offset-5">Delete</button>
+    </form>
+    </div>
+    <hr>
+<%}%>
+
+    <div class="col-8 offset-3 mb-3">
+    <% if(currentUser) {%>
+        <hr>
+      <h4>Leave a Review</h4>
+       <form action="/listings/<%=listing._id%>/reviews" method="POST" 
+        novalidate class="needs-validation">
+     
+        <div class="mb-3 mt-3">
+        <label for="rating" class ="form-label"><b>Rating</b></label>
+        <br>
+        <fieldset class="starability-slot">
+
+            <input type="radio" id="rate5" name="review[rating]" value="5" />
+            <label for="rate5"></label>
+          
+            <input type="radio" id="rate4" name="review[rating]" value="4" />
+            <label for="rate4"></label>
+          
+            <input type="radio" id="rate3" name="review[rating]" value="3" />
+            <label for="rate3"></label>
+          
+            <input type="radio" id="rate2" name="review[rating]" value="2" />
+            <label for="rate2"></label>
+          
+            <!-- default -->
+            <input type="radio" id="rate1" name="review[rating]" value="1" checked />
+            <label for="rate1"></label>
+          
+          </fieldset>
+        </div>
+        
+        <div class="mb-3 mt-3">
+            <label for="comment" class ="form-label">Comments</label>
+            <textarea 
+            name="review[comment]" 
+            id="comment" 
+            cols="30" rows="5" 
+            class ="form-control"
+            required
+            ></textarea>
+            <div class="invalid-feedback">
+             Please add some comments for review
+            </div>
+        </div>
+        <button class="btn btn-outline-dark">Submit</button>
+       </form>
+       <%}%>
+     <hr><hr>
+
+       <% if(listing.reviews.length >0) { %>
+       <div class="row">
+        <p><b>All Reviews</b></p>
+       <% for(review of listing.reviews) { %>
+       <div class="card col-6 mb-3">
+        <div class="card h-100">
+       <div class="card-body">
+        <h5 class="card-title">@<%=review.author.username%></h5>
+        <p class="card-text text-warning fs-5">
+            <%= "★".repeat(review.rating) %><%= "☆".repeat(5 - review.rating) %>
+        </p>
+        <p class="card-text"><%=review.comment%></p>
+        
+
+        <form method="POST" action="/listings/<%=listing._id%>/reviews/<%=review._id%>?_method=DELETE">
+        <button class="btn btn-sm btn-dark mb-1">Delete</button>
+       </form>
+       </div>
+    </div>
+    <%}%>
+    </div>
+    <%}%>
+    <!-- </div>
+    <div class="col-6 offset-3 mb-3">
+    <h4>Where you'll be</h4>
+    <div id="map"></div>
+    </div> -->
+</div> 
+</div>  
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+  
+  const mapDiv = document.getElementById("map");
+  const coordinates = JSON.parse(mapDiv.dataset.coordinates);
+  
+  let map;
+  
+  if (coordinates && coordinates.length === 2) {
+  
+    map = L.map('map').setView(
+      [coordinates[1], coordinates[0]],
+      15
+    );
+  
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+  
+    const customMarker = L.divIcon({
+    html: `<div class="airbnb-marker">₹<%= listing.price %></div>`,
+    className: "",
+    iconSize: [80, 30],
+    iconAnchor: [40, 15]
+});
+  
+L.marker([coordinates[1], coordinates[0]], { icon: customMarker })
+  .addTo(map)
+  .bindPopup(`
+    <b>${mapDiv.dataset.title}</b>
+    📍<p>${mapDiv.dataset.location}, ${mapDiv.dataset.country}</p>
+  `);
+  
+  } else {
+  
+    map = L.map('map').setView([20.5937, 78.9629], 4);
+  
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+  
+  }
+  
+  });
+  </script>
