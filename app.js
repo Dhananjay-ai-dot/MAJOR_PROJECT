@@ -4,7 +4,6 @@
 if(process.env.NODE_ENV !== "production"){
     require("dotenv").config();
 }
-console.log(process.env.SECRET);
 
 const express= require("express");
 const app=express();
@@ -44,7 +43,9 @@ app.set("views",path.join(__dirname,"views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
-app.use(express.static(path.join(__dirname,"/public")));
+app.use(express.static(path.join(__dirname,"public")));
+
+app.set("trust proxy", 1); //production=> for cookies to work well in render
 
 //MongoStore.create() =>method used for creating mongo Store
 const store =MongoStore.create({
@@ -117,11 +118,20 @@ app.use((req,res,next)=>{
 
 //connection with listing.js page
 //when req comes on listing/something it hands on to listing.js
+
+app.get("/", (req, res) => {
+    res.redirect("/listings");
+});
+
 app.use("/listings" , listingRouter);
 
 app.use("/listings/:id/reviews",reviewRouter);
 
 app.use("/" , userRouter);
+
+//for payments => razorpay
+const paymentRoutes = require("./routes/payment");
+app.use("/", paymentRoutes);
 
 app.use((req,res,next)=>{
     next(new ExpressError(404,"Page not found!"));
@@ -135,7 +145,12 @@ app.use((err, req, res, next) => {
 
     res.status(statusCode).render("error.ejs", { message });
 });
-    // res.status(statusCode).send(message); //deconstuct custom error
-app.listen(8080 , ()=>{
-    console.log("server is listening to post 8080");
-});  
+
+ // res.status(statusCode).send(message); //deconstuct custom error
+
+ //  PORT FIX (VERY IMPORTANT) for production
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, ()=>{
+    console.log(`server is listening on port ${PORT}`);
+});
