@@ -172,7 +172,7 @@
       return;
     }
 
-    const totalAmount = nights * <%= listing.price %>;
+    const totalAmount = nights * parseInt("<%= listing.price %>".replace(/,/g, ""));
 
     // Create order on backend
     const response = await fetch("/create-order", {

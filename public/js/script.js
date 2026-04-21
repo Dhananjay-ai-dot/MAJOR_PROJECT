@@ -16,4 +16,19 @@
         form.classList.add('was-validated')
       }, false)
     })
-  })()
+  })();
+
+  function openBooking() {
+    document.getElementById("bookingModal").style.display = "flex";
+  }
+  
+  function closeBooking() {
+    document.getElementById("bookingModal").style.display = "none";
+  }
+  
+  window.onclick = function(event) {
+    const modal = document.getElementById("bookingModal");
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true }); //handles related requests to listings something
 const wrapAsync = require("../utils/wrapAsync.js");
-const {reviewSchema} = require("../schema.js"); 
+
 const Listing = require("../models/listing.js"); //requiring listing model
 const { isLoggedIn , isOwner ,validateListing} = require("../middleware.js");
 
