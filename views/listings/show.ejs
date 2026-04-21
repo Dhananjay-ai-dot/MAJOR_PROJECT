@@ -13,11 +13,15 @@
             <p class="card-text"><%=listing.description%></p>
             <br>
             <p class="card-text">&#8377;<%=listing.price%></p>
+            <button class="btn btn-danger mt-2" onclick="openBooking()">
+              Book Now
+            </button>
             <br>
             <p class="card-text"><%=listing.location%></p>
             <br>
             <p class="card-text"><%=listing.country%></p>
          <hr>
+         
         
         <h4>Where you'll be</h4>
         <div 
@@ -71,6 +75,7 @@
           
           </fieldset>
         </div>
+
         
         <div class="mb-3 mt-3">
             <label for="comment" class ="form-label">Comments</label>
@@ -118,12 +123,94 @@
     <div id="map"></div>
     </div> -->
 </div> 
-</div>  
+</div> 
+<!-- BOOKING MODAL -->
+<div id="bookingModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeBooking()">&times;</span>
+    <h4>Book Your Stay</h4>
+    <p>₹<%= listing.price %> / night</p>
+
+    <label>Check-in</label>
+    <input type="date" id="checkIn" class="form-control mb-2" required>
+
+    <label>Check-out</label>
+    <input type="date" id="checkOut" class="form-control mb-2" required>
+
+    <button class="btn btn-success w-100 mt-2" onclick="startPayment()">
+      Confirm & Pay
+    </button>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  function openBooking() {
+    document.getElementById("bookingModal").style.display = "flex";
+  }
+
+  function closeBooking() {
+    document.getElementById("bookingModal").style.display = "none";
+  }
+
+  async function startPayment() {
+    const checkIn = document.getElementById("checkIn").value;
+    const checkOut = document.getElementById("checkOut").value;
+
+    if (!checkIn || !checkOut) {
+      alert("Please select check-in and check-out dates.");
+      return;
+    }
+
+    // Calculate number of nights
+    const nights = Math.ceil(
+      (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
+    );
+
+    if (nights <= 0) {
+      alert("Check-out must be after check-in.");
+      return;
+    }
+
+    const totalAmount = nights * <%= listing.price %>;
+
+    // Create order on backend
+    const response = await fetch("/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: totalAmount }),
+    });
+
+    const order = await response.json();
+
+    // Open Razorpay checkout
+    const options = {
+      key: "<%= process.env.RAZORPAY_KEY_ID %>",
+      amount: order.amount,
+      currency: "INR",
+      name: "Wanderlust",
+      description: "<%= listing.title %>",
+      order_id: order.id,
+      handler: function (response) {
+        alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
+        closeBooking();
+      },
+      prefill: {
+        name: "<%= currentUser ? currentUser.username : '' %>",
+      },
+      theme: { color: "#FF385C" },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+</script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
   
-  const mapDiv = document.getElementById("map");
-  const coordinates = JSON.parse(mapDiv.dataset.coordinates);
+    const mapDiv = document.getElementById("map");
+    if (!mapDiv) return;
+    const coordinates = JSON.parse(mapDiv.dataset.coordinates);
   
   let map;
   
@@ -163,4 +250,15 @@ L.marker([coordinates[1], coordinates[0]], { icon: customMarker })
   }
   
   });
-  </script>
+  document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") {
+    closeBooking();
+  }
+});
+
+//razorpay
+
+
+</script>
+
+  
