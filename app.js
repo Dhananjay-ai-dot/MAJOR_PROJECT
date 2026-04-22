@@ -119,22 +119,24 @@ app.use((req,res,next)=>{
 //connection with listing.js page
 //when req comes on listing/something it hands on to listing.js
 
-app.get("/", (req, res) => {
-    res.redirect("/listings");
-});
-
-app.use("/listings" , listingRouter);
-
-app.use("/listings/:id/reviews",reviewRouter);
+// app.get("/", (req, res) => {
+//     res.redirect("/listings");
+// });
 
 app.use("/" , userRouter);
+app.use("/", listingRouter);
+
+app.use("/:id/reviews", reviewRouter);
+
+
 
 //for payments => razorpay
 const paymentRoutes = require("./routes/payment");
 app.use("/", paymentRoutes);
 
-app.use((req,res,next)=>{
-    next(new ExpressError(404,"Page not found!"));
+app.use((req, res, next) => {
+    console.log("❌ 404 URL:", req.originalUrl);
+    next(new ExpressError(404, "Page not found!"));
 });
 
 app.use((err, req, res, next) => {
